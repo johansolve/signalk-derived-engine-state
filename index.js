@@ -1,5 +1,5 @@
 /*
- * signalk-engine-state
+ * signalk-derived-engine-state
  *
  * Publishes propulsion.<instance>.state ("started"/"stopped") for a boat with no
  * NMEA 2000 engine data, by inferring engine-on from the alternator temperature
@@ -29,7 +29,7 @@ module.exports = function (app) {
   let statePath = 'propulsion.0.state'
   let options = {}
 
-  plugin.id = 'signalk-engine-state'
+  plugin.id = 'signalk-derived-engine-state'
   plugin.name = 'Engine state from alternator & charge current'
   plugin.description =
     'Infers propulsion.<instance>.state (started/stopped) from alternator ' +

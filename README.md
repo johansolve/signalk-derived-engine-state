@@ -1,4 +1,4 @@
-# signalk-engine-state
+# signalk-derived-engine-state
 
 Publishes `propulsion.<instance>.state` (`started` / `stopped`) for a boat that
 has no NMEA 2000 engine data, by inferring engine-on from the **alternator
@@ -47,8 +47,8 @@ brief dip past a threshold does not flap the output.
 ## Install (onboard, as a linked local plugin)
 
 ```bash
-cd signalk-engine-state && npm install && npm link
-cd ~/.signalk && npm link signalk-engine-state
+cd signalk-derived-engine-state && npm install && npm link
+cd ~/.signalk && npm link signalk-derived-engine-state
 # then restart signalk-server
 ```
 
@@ -92,7 +92,7 @@ To reconstruct history, replay recorded sensor data through the same detector:
 # one-shot CLI (runs against InfluxDB directly, no Signal K auth)
 node backfill-run.js 2026-05-01T00:00:00Z 2026-06-01T00:00:00Z   # add --dry to preview
 # or the admin route:
-# POST /plugins/signalk-engine-state/backfill  { "from": <ms>, "to": <ms> }
+# POST /plugins/signalk-derived-engine-state/backfill  { "from": <ms>, "to": <ms> }
 ```
 
 Backfill is idempotent (it clears the range before writing). Run it in monthly
