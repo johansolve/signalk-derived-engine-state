@@ -1,4 +1,4 @@
-# signalk-derived-engine-state
+# Derived Engine State
 
 Publishes `propulsion.<instance>.state` (`started` / `stopped`) for a boat that
 has no NMEA 2000 engine data, by inferring engine-on from the **alternator

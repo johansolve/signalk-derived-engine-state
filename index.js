@@ -30,7 +30,7 @@ module.exports = function (app) {
   let options = {}
 
   plugin.id = 'signalk-derived-engine-state'
-  plugin.name = 'Engine state from alternator & charge current'
+  plugin.name = 'Derived Engine State'
   plugin.description =
     'Infers propulsion.<instance>.state (started/stopped) from alternator ' +
     'temperature and house charge current when there is no engine RPM source.'
