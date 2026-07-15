@@ -1,0 +1,20 @@
+{
+  "name": "signalk-engine-state",
+  "version": "0.1.0",
+  "description": "Infers propulsion.<instance>.state (started/stopped) from alternator temperature and house charge current, for boats with no NMEA 2000 engine data.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"no tests\" && exit 0"
+  },
+  "keywords": [
+    "signalk-node-server-plugin",
+    "signalk-category-utility"
+  ],
+  "signalk-plugin-enabled-by-default": false,
+  "author": "Johan Solve",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {}
+}
