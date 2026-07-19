@@ -92,6 +92,18 @@ module.exports = function (app) {
         title: 'And speed through water at least this (kn)',
         default: 3
       },
+      windSustainSec: {
+        type: 'number',
+        title: 'The wind rule must hold (on average) this long before it means ON (s)',
+        description: 'A boat carrying way through a lull can briefly out-run the light true wind; only a running engine sustains it. Averaged over this window so a transient lull-carry does not trip a false engine-ON.',
+        default: 180
+      },
+      windMaxTwaDeg: {
+        type: 'number',
+        title: 'Only apply the wind rule close-hauled, within this |TWA| (deg)',
+        description: 'A keelboat cannot out-run the true wind upwind, but on a reach or run it can, so STW > TWS there is not proof of an engine. The wind rule is gated to a mean |TWA| below this. Requires a true wind angle; 0 disables the gate.',
+        default: 60
+      },
       twsPath: {
         type: 'string',
         title: 'True wind speed path (m/s)',
@@ -101,6 +113,11 @@ module.exports = function (app) {
         type: 'string',
         title: 'Speed through water path (m/s)',
         default: 'navigation.speedThroughWater'
+      },
+      twaPath: {
+        type: 'string',
+        title: 'True wind angle path (rad, for the point-of-sail gate)',
+        default: 'environment.wind.angleTrueWater'
       },
       onCurrentA: {
         type: 'number',
@@ -262,7 +279,9 @@ module.exports = function (app) {
       movingHoldSec: options.movingHoldSec,
       windStwOverTwsMs: (options.windStwOverTwsKnots != null ? options.windStwOverTwsKnots : 1) * KNOT,
       windTwsCapMs: (options.windTwsCapKnots != null ? options.windTwsCapKnots : 8) * KNOT,
-      windMinStwMs: (options.windMinStwKnots != null ? options.windMinStwKnots : 3) * KNOT
+      windMinStwMs: (options.windMinStwKnots != null ? options.windMinStwKnots : 3) * KNOT,
+      windSustainSec: options.windSustainSec,
+      windMaxTwaRad: (options.windMaxTwaDeg != null ? options.windMaxTwaDeg : 60) * (Math.PI / 180)
     }
   }
 
@@ -302,6 +321,7 @@ module.exports = function (app) {
     const speedPath = options.speedPath || 'navigation.speedOverGround'
     const twsPath = options.twsPath || 'environment.wind.speedTrue'
     const stwPath = options.stwPath || 'navigation.speedThroughWater'
+    const twaPath = options.twaPath || 'environment.wind.angleTrueWater'
 
     if (options.publishMeta !== false) {
       publishMeta()
@@ -316,7 +336,8 @@ module.exports = function (app) {
           { path: alternatorPath, period: 5000 },
           { path: speedPath, period: 1000 },
           { path: twsPath, period: 1000 },
-          { path: stwPath, period: 1000 }
+          { path: stwPath, period: 1000 },
+          { path: twaPath, period: 1000 }
         ]
       },
       unsubscribes,
@@ -335,6 +356,8 @@ module.exports = function (app) {
               detector.setTws(now, v.value)
             } else if (v.path === stwPath) {
               detector.setStw(now, v.value)
+            } else if (v.path === twaPath) {
+              detector.setTwa(now, v.value)
             } else if (v.path === alternatorPath) {
               // Alternator temperature may arrive in Kelvin; normalise to °C.
               const c = typeof v.value === 'number' && v.value > 200 ? v.value - 273.15 : v.value

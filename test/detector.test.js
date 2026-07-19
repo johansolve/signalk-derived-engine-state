@@ -4,6 +4,7 @@ const assert = require('node:assert/strict')
 const { createEngineDetector, createDebouncer } = require('../lib/detector')
 
 const KNOT = 0.514444
+const DEG = Math.PI / 180
 const T = 1700000000000
 const at = (s) => T + s * 1000
 
@@ -53,22 +54,78 @@ describe('createEngineDetector', function () {
     assert.equal(d.evaluate(at(1)), false)
   })
 
-  it('wind rule: fast through water in light wind = on', function () {
-    const d = createEngineDetector({ windStwOverTwsMs: 1 * KNOT, windTwsCapMs: 8 * KNOT, windMinStwMs: 3 * KNOT })
+  it('wind rule: fast through water in light wind (close-hauled) = on', function () {
+    const d = createEngineDetector({ windStwOverTwsMs: 1 * KNOT, windTwsCapMs: 8 * KNOT, windMinStwMs: 3 * KNOT, windSustainSec: 20 })
     for (let s = 0; s <= 30; s += 5) {
       d.setTws(at(s), 3 * KNOT)
       d.setStw(at(s), 5.3 * KNOT)
+      d.setTwa(at(s), 35 * DEG)
     }
     assert.equal(d.evaluate(at(30)), true)
   })
 
   it('wind rule does not fire when the wind explains the speed', function () {
-    const d = createEngineDetector({ windStwOverTwsMs: 1 * KNOT, windTwsCapMs: 8 * KNOT, windMinStwMs: 3 * KNOT })
+    const d = createEngineDetector({ windStwOverTwsMs: 1 * KNOT, windTwsCapMs: 8 * KNOT, windMinStwMs: 3 * KNOT, windSustainSec: 20 })
     for (let s = 0; s <= 30; s += 5) {
       d.setTws(at(s), 8 * KNOT)
       d.setStw(at(s), 4 * KNOT)
+      d.setTwa(at(s), 35 * DEG)
     }
     assert.equal(d.evaluate(at(30)), null)
+  })
+
+  it('wind rule is blocked on a reach even when STW stays above TWS (the Flakfortet→Rungsted case)', function () {
+    const d = createEngineDetector({ windStwOverTwsMs: 1 * KNOT, windTwsCapMs: 8 * KNOT, windMinStwMs: 3 * KNOT, windSustainSec: 20 })
+    // Sustained STW well above TWS, which upwind would mean engine — but on a
+    // broad reach a keelboat can out-run a light true wind under sail, so the
+    // point-of-sail gate must keep it OFF.
+    for (let s = 0; s <= 40; s += 5) {
+      d.setTws(at(s), 3.7 * KNOT)
+      d.setStw(at(s), 5.6 * KNOT)
+      d.setTwa(at(s), 115 * DEG)
+    }
+    assert.equal(d.evaluate(at(40)), null)
+  })
+
+  it('wind rule stays silent without a true wind angle (cannot confirm close-hauled)', function () {
+    const d = createEngineDetector({ windStwOverTwsMs: 1 * KNOT, windTwsCapMs: 8 * KNOT, windMinStwMs: 3 * KNOT, windSustainSec: 20 })
+    for (let s = 0; s <= 40; s += 5) {
+      d.setTws(at(s), 3 * KNOT)
+      d.setStw(at(s), 5.3 * KNOT)
+      // no setTwa
+    }
+    assert.equal(d.evaluate(at(40)), null)
+  })
+
+  it('wind rule ignores a transient lull-carry (sailing, not engine)', function () {
+    const d = createEngineDetector({ windStwOverTwsMs: 1 * KNOT, windTwsCapMs: 8 * KNOT, windMinStwMs: 3 * KNOT })
+    // Close-hauled throughout (gate open), sailing slower than the wind for three
+    // minutes...
+    for (let s = 0; s <= 180; s += 5) {
+      d.setTws(at(s), 8 * KNOT)
+      d.setStw(at(s), 5.5 * KNOT)
+      d.setTwa(at(s), 35 * DEG)
+    }
+    // ...then the wind drops for a minute while the boat carries its way, so STW
+    // briefly exceeds TWS. Averaged over the sustain window it is still sailing.
+    for (let s = 185; s <= 240; s += 5) {
+      d.setTws(at(s), 3.5 * KNOT)
+      d.setStw(at(s), 5.5 * KNOT)
+      d.setTwa(at(s), 35 * DEG)
+    }
+    assert.equal(d.evaluate(at(240)), null)
+  })
+
+  it('wind rule fires when the speed excess is sustained close-hauled (engine)', function () {
+    const d = createEngineDetector({ windStwOverTwsMs: 1 * KNOT, windTwsCapMs: 8 * KNOT, windMinStwMs: 3 * KNOT })
+    // STW a steady 2 kn above the light true wind, close-hauled, for over three
+    // minutes: upwind only an engine holds that.
+    for (let s = 0; s <= 200; s += 5) {
+      d.setTws(at(s), 3.5 * KNOT)
+      d.setStw(at(s), 5.5 * KNOT)
+      d.setTwa(at(s), 35 * DEG)
+    }
+    assert.equal(d.evaluate(at(200)), true)
   })
 
   it('wind rule is disabled only by windStwOverTws <= 0', function () {

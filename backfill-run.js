@@ -30,7 +30,9 @@ const detectorOpts = {
   movingHoldSec: 15,
   windStwOverTwsMs: 1 * KNOT,
   windTwsCapMs: 8 * KNOT,
-  windMinStwMs: 3 * KNOT
+  windMinStwMs: 3 * KNOT,
+  windSustainSec: 180,
+  windMaxTwaRad: (60 * Math.PI) / 180
 }
 const debouncerOpts = { holdMs: 30000, flipGraceMs: 10000 }
 

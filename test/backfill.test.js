@@ -15,7 +15,8 @@ function mockInflux (series) {
     socSeries: async () => series.soc || [],
     twsSeries: async () => series.tws || [],
     stwSeries: async () => series.stw || [],
-    sogSeries: async () => series.sog || []
+    sogSeries: async () => series.sog || [],
+    twaSeries: async () => series.twa || []
   }
 }
 
