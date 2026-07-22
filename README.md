@@ -60,6 +60,10 @@ cd ~/.signalk && npm link signalk-derived-engine-state
 | `currentPath` | `electrical.batteries.House.current` | Charge current source |
 | `socPath` | `electrical.batteries.House.capacity.stateOfCharge` | State of charge source |
 | `alternatorPath` | `environment.alternator.temperature` | Alternator temperature source |
+| `speedPath` | `navigation.speedOverGround` | Boat speed (SOG) for the movement gate |
+| `stwPath` | `navigation.speedThroughWater` | Speed through water (wind rule) |
+| `twsPath` | `environment.wind.speedTrue` | True wind speed (wind rule) |
+| `twaPath` | `environment.wind.angleTrueWater` | True wind angle (close-hauled gate) |
 | `onCurrentA` | `5` | Current that means engine ON |
 | `offCurrentA` | `1` | Current at/below which the engine is OFF when not full |
 | `fullSoc` | `0.995` | SoC treated as full |
@@ -74,10 +78,14 @@ cd ~/.signalk && npm link signalk-derived-engine-state
 | `windStwOverTwsKnots` | `1` | STW this much above TWS (in light wind) = engine ON; `0` disables the wind rule |
 | `windTwsCapKnots` | `8` | Only apply the wind rule below this true wind |
 | `windMinStwKnots` | `3` | And speed through water at least this |
+| `windMaxTwaDeg` | `60` | Only apply the wind rule close-hauled, within this \|TWA\|; `0` disables the gate |
+| `windSustainSec` | `180` | The wind rule must hold this long (averaged) before it means ON |
 | `minMovingKnots` | `1` | Boat must move faster than this for charge current to mean ON |
 | `movingHoldSec` | `15` | Movement must be sustained this long to count |
+| `publishMeta` | `true` | Publish metadata (description) for the state path |
 | `writeToInflux` | `true` | Also write transitions straight to InfluxDB (for the logbook/Grafana and backfill) |
 | `influxHost`/`influxPort`/`influxDatabase` | `localhost`/`8086`/`libelle` | InfluxDB target |
+| `influxUsername`/`influxPassword` | — | InfluxDB auth (optional, blank if disabled) |
 
 ## Persistence & backfill
 

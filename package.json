@@ -4,6 +4,14 @@
   "displayName": "Derived Engine State",
   "description": "Infers propulsion.<instance>.state (started/stopped) from alternator temperature and house charge current, for boats with no NMEA 2000 engine data.",
   "main": "index.js",
+  "files": [
+    "index.js",
+    "lib/",
+    "backfill-run.js",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "scripts": {
     "test": "mocha",
     "lint": "eslint ."
