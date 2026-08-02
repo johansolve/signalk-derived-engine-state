@@ -24,7 +24,9 @@ Layered, most to least confident:
    the boat's 3–4 A idle draw never nets above ~1 A. The speed gate keeps shore
    power (charging hard at the dock, SOG ~0) from reading as an engine; a
    stationary engine (warming up, charging at anchor) is caught by the
-   temperature slope in step 3 instead.
+   temperature slope in step 3 instead. Movement counts for `movingGraceSec`
+   (default 120) after she last made way, so rounding up to drop sails — where
+   she stops for a minute with the engine running — does not drop the state.
 2. **Charge current ≤ 1 A and SoC < full → OFF.** A running alternator with room
    to charge would be pushing current.
 3. **Otherwise the alternator temperature slope** over the last 10 minutes:
@@ -82,6 +84,7 @@ cd ~/.signalk && npm link signalk-derived-engine-state
 | `windSustainSec` | `180` | The wind rule must hold this long (averaged) before it means ON |
 | `minMovingKnots` | `1` | Boat must move faster than this for charge current to mean ON |
 | `movingHoldSec` | `15` | Movement must be sustained this long to count |
+| `movingGraceSec` | `120` | Charge current still counts as the alternator this long after she last made way, so a round-up does not drop the state |
 | `publishMeta` | `true` | Publish metadata (description) for the state path |
 | `writeToInflux` | `true` | Also write transitions straight to InfluxDB (for the logbook/Grafana and backfill) |
 | `influxHost`/`influxPort`/`influxDatabase` | `localhost`/`8086`/`libelle` | InfluxDB target |

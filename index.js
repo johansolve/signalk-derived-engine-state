@@ -76,6 +76,12 @@ module.exports = function (app) {
         description: 'Rejects single SOG spikes from GPS glitches.',
         default: 15
       },
+      movingGraceSec: {
+        type: 'number',
+        title: 'Charge current still counts as the alternator this long after the boat last made way (s)',
+        description: 'Rounding up to drop sails, or holding station, takes the boat under the speed threshold for a minute or two with the engine plainly running. Without this the state drops out exactly there. Keep it well short of a stay alongside, where the current becomes shore power.',
+        default: 120
+      },
       windStwOverTwsKnots: {
         type: 'number',
         title: 'STW this much above TWS (in light wind) = engine ON (kn)',
@@ -277,6 +283,7 @@ module.exports = function (app) {
       tempMaxAgeSec: options.tempMaxAgeSec,
       minMovingSpeedMs: minMovingKnots * KNOT,
       movingHoldSec: options.movingHoldSec,
+      movingGraceSec: options.movingGraceSec,
       windStwOverTwsMs: (options.windStwOverTwsKnots != null ? options.windStwOverTwsKnots : 1) * KNOT,
       windTwsCapMs: (options.windTwsCapKnots != null ? options.windTwsCapKnots : 8) * KNOT,
       windMinStwMs: (options.windMinStwKnots != null ? options.windMinStwKnots : 3) * KNOT,

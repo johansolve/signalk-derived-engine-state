@@ -32,6 +32,70 @@ describe('createEngineDetector', function () {
     assert.equal(d.evaluate(at(60)), null)
   })
 
+  it('stays on through a round-up, when she was making way just before', function () {
+    // 2026-08-02: rounding up to drop sails took her to 0.2-0.6 kn for twenty
+    // seconds with the alternator pushing 16 A. The gate is there to tell the
+    // alternator from shore power, and shore power does not arrive mid-manoeuvre.
+    const d = createEngineDetector({ minMovingSpeedMs: 1 * KNOT })
+    for (let s = 0; s <= 60; s += 5) {
+      d.setSpeed(at(s), 3)
+      d.setCurrent(at(s), 25)
+    }
+    assert.equal(d.evaluate(at(60)), true)
+    for (let s = 65; s <= 85; s += 5) {
+      d.setSpeed(at(s), 0.2)
+      d.setCurrent(at(s), 16)
+    }
+    assert.equal(d.evaluate(at(85)), true, 'twenty seconds stopped is a round-up')
+  })
+
+  it('but lets go once she has been stopped long enough to be alongside', function () {
+    // The grace has to expire, or a shore lead plugged in after a passage would
+    // read as the engine for as long as it stayed plugged in.
+    const d = createEngineDetector({ minMovingSpeedMs: 1 * KNOT, movingGraceSec: 120 })
+    for (let s = 0; s <= 60; s += 5) {
+      d.setSpeed(at(s), 3)
+      d.setCurrent(at(s), 25)
+    }
+    for (let s = 65; s <= 300; s += 5) {
+      d.setSpeed(at(s), 0)
+      d.setCurrent(at(s), 25) // shore power, indistinguishable by current alone
+    }
+    assert.equal(d.evaluate(at(150)), true, 'still inside the grace')
+    assert.equal(d.evaluate(at(300)), null, 'past it the gate closes again')
+  })
+
+  it('refreshes the grace whenever she makes way again', function () {
+    const d = createEngineDetector({ minMovingSpeedMs: 1 * KNOT, movingGraceSec: 60 })
+    for (let s = 0; s <= 60; s += 5) {
+      d.setSpeed(at(s), 3)
+      d.setCurrent(at(s), 25)
+    }
+    // Stop, go, stop again: each spell under way resets the clock, so the gate
+    // never latches on and never times out mid-passage.
+    for (let s = 65; s <= 100; s += 5) { d.setSpeed(at(s), 0); d.setCurrent(at(s), 25) }
+    for (let s = 105; s <= 160; s += 5) { d.setSpeed(at(s), 3); d.setCurrent(at(s), 25) }
+    assert.equal(d.evaluate(at(160)), true)
+    for (let s = 165; s <= 200; s += 5) { d.setSpeed(at(s), 0); d.setCurrent(at(s), 25) }
+    assert.equal(d.evaluate(at(200)), true, 'the grace runs from the later spell')
+  })
+
+  it('does not grant grace to a clock that has stepped backwards', function () {
+    // A Pi without an RTC boots on a stale clock and jumps when NTP lands. The
+    // moment she last made way is then in the future, and must not read as
+    // "recently" for however long the step was.
+    const d = createEngineDetector({ minMovingSpeedMs: 1 * KNOT, movingGraceSec: 120 })
+    for (let s = 3600; s <= 3660; s += 5) {
+      d.setSpeed(at(s), 3)
+      d.setCurrent(at(s), 25)
+    }
+    for (let s = 0; s <= 60; s += 5) {
+      d.setSpeed(at(s), 0)
+      d.setCurrent(at(s), 25)
+    }
+    assert.equal(d.evaluate(at(60)), null)
+  })
+
   it('a lone SOG spike does not count as moving', function () {
     const d = createEngineDetector({ minMovingSpeedMs: 1 * KNOT })
     for (let s = 0; s <= 60; s += 5) {

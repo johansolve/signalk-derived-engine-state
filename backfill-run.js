@@ -28,6 +28,7 @@ const detectorOpts = {
   tempMaxAgeSec: 600,
   minMovingSpeedMs: 1 * KNOT,
   movingHoldSec: 15,
+  movingGraceSec: 120,
   windStwOverTwsMs: 1 * KNOT,
   windTwsCapMs: 8 * KNOT,
   windMinStwMs: 3 * KNOT,
